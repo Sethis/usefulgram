@@ -38,7 +38,7 @@ class ThrottlingMiddleware(BaseMiddleware):
                 if isinstance(event, CallbackQuery):
                     return await self.trottling_answer(self._answer_text, event)
 
-                return
+                return None
 
             self._cache[user.id] = None
 

@@ -5,5 +5,11 @@ from .exceptions import (
     UnknownButtonType,
     NoOneButtonParamIsFilled,
     TooMoreCharacters,
-    RecursionObjectParse
+    RecursionObjectParse,
+    WrongObjectType,
+    CantEditMedia,
+    BotIsUndefined,
+    MessageTooOld,
+    MessageTextIsNone,
+    UndefinedMagicFilterModel
 )

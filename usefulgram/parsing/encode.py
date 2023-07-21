@@ -2,7 +2,10 @@
 
 import sys
 
-from typing import Union
+from typing import Any
+
+from enum import Enum
+from decimal import Decimal
 
 from datetime import date, time, datetime
 
@@ -11,32 +14,45 @@ from usefulgram.enums import Const
 
 
 class _Additional:
+    @staticmethod
+    def _add_separator(item: str, separator: str = "&") -> str:
+        return f"{item}{separator}"
+
     def _object_to_str(self, item: object) -> str:
         annotations_keys = list(item.__annotations__.keys())
 
         result = ""
 
-        for i in annotations_keys:
-            if i == "prefix":
+        for key in annotations_keys:
+            if key == "prefix":
                 continue
 
-            values = item.__getattribute__(f"{i}")
+            values = item.__getattribute__(f"{key}")
 
-            result += self._to_str(values, is_recursion=True)
+            string_value = self._to_str(values, is_recursion=True)
 
-        return result
+            result += self._add_separator(string_value)
 
-    def _to_str(
-            self,
-            item: Union[str, int, bool, None, datetime, date, time, object],
-            is_recursion: bool = False
-    ) -> str:
+        return result[:-1]
 
-        if isinstance(item, (str, int, bool)) or item is None:
-            return f"{item}&"
+    def _to_str(self, item: Any, is_recursion: bool = False) -> str:
+        if item is None:
+            return ""
+
+        if isinstance(item, bool):
+            return str(int(item))
+
+        if isinstance(item, str):
+            return item
+
+        if isinstance(item, (int, float, Decimal)):
+            return str(item)
 
         if isinstance(item, (datetime, date, time)):
-            return item.strftime(Const.DATETIME_FORMAT) + "&"
+            return item.strftime(Const.DATETIME_FORMAT)
+
+        if isinstance(item, Enum):
+            return item.name
 
         if is_recursion:
             raise RecursionObjectParse
@@ -47,18 +63,14 @@ class _Additional:
         except AttributeError:
             return f"{item}"
 
-    def __call__(
-            self, *args: Union[str, int, bool, None,
-                               datetime, date, time, object]
-                 ) -> str:
-
+    def __call__(self, *args: Any) -> str:
         if args == ():
             return ""
 
         result = ""
 
-        for i in args:
-            result += self._to_str(i)
+        for item in args:
+            result += self._add_separator(self._to_str(item))
 
         result = result[:-1]
 
@@ -86,12 +98,14 @@ class _CallbackData:
 
     def __call__(
             self, prefix: str,
-            *args: Union[str, int, bool, None, datetime, date, time, object],
+            *args: Any,
             separator: str = "/") -> str:
 
         additional = AdditionalInstance(*args)
 
-        callback_data = self._get_str_callback_data(prefix, additional, separator)
+        callback_data = self._get_str_callback_data(
+            prefix, additional, separator
+        )
 
         self._check_callback_data_bytes(callback_data)
 

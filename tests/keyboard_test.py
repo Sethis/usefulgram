@@ -12,11 +12,14 @@ from aiogram.types import (
 
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
-from usefulgram.keyboard.builder import (
+from usefulgram.keyboard import (
     Button,
     ReplyButton,
     Row,
-    Builder)
+    ReplyRow,
+    Builder,
+    ReplyBuilder
+)
 
 from usefulgram.parsing.encode import CallbackData
 from usefulgram.filters import BasePydanticFilter
@@ -38,11 +41,6 @@ class KeyboardTestCase(unittest.TestCase):
         except ValueError:
             return True
 
-    def test_inline_button_without_arguments(self):
-        result = self.is_raise_value_exception(Button, text="text")
-
-        self.assertTrue(result)
-
     def test_inline_button_prefix(self):
         button = Button("text", prefix="prefix")
 
@@ -52,13 +50,13 @@ class KeyboardTestCase(unittest.TestCase):
         first_button = Button("text", PrefixTestData())
         second_button = Button("text", prefix="some_prefix")
 
-        self.assertTrue(second_button.get_buttons() == first_button.get_buttons())
+        self.assertTrue(second_button == first_button)
 
     def test_prefix_changing(self):
         first_button = Button("text", PrefixTestData(), prefix="another_prefix")
         second_button = Button("text", prefix="another_prefix")
 
-        self.assertTrue(second_button.get_buttons() == first_button.get_buttons())
+        self.assertTrue(second_button == first_button)
 
     def test_inline_button_get_button(self):
         button = Button("text", "other", "something", prefix="prefix")
@@ -67,7 +65,7 @@ class KeyboardTestCase(unittest.TestCase):
         aiogram_button = InlineKeyboardButton(text="text",
                                               callback_data=callback_data)
 
-        self.assertTrue(button.get_buttons() == aiogram_button)
+        self.assertTrue(button.__dict__ == aiogram_button.__dict__)
 
     def test_inline_url_button(self):
         button = Button("text", url=self.sample_url)
@@ -76,30 +74,23 @@ class KeyboardTestCase(unittest.TestCase):
             text="text", url=self.sample_url
         )
 
-        self.assertTrue(button.get_buttons() == aiogram_button)
+        self.assertTrue(button.__dict__ == aiogram_button.__dict__)
 
     def test_inline_button_too_lenght(self):
-        button = Button("text", prefix="prefix"*100)
+        try:
+            Button("text", prefix="prefix"*100)
 
-        result = self.is_raise_value_exception(Row, button)
+            self.assertFalse(True)
 
-        self.assertTrue(result)
+        except ValueError:
+            self.assertTrue(True)
 
     def test_reply_button(self):
         button = ReplyButton("text")
 
         aiogram_button = KeyboardButton(text="text")
 
-        self.assertTrue(button.get_buttons() == aiogram_button)
-
-    def test_both_button_type_in_row(self):
-        inline_button = Button("text", True, 1, prefix="prefix")
-        reply_button = ReplyButton("text")
-
-        result = self.is_raise_value_exception(Row, inline_button,
-                                               reply_button)
-
-        self.assertTrue(result)
+        self.assertTrue(button.__dict__ == aiogram_button.__dict__)
 
     def test_inline_row(self):
         row = Row(
@@ -108,16 +99,16 @@ class KeyboardTestCase(unittest.TestCase):
             Button("text", True, True, False, prefix="prefix")
         )
 
-        self.assertTrue(row.get_rows())
+        self.assertTrue(row)
 
     def test_reply_row(self):
-        row = Row(
+        row = ReplyRow(
             ReplyButton("text"),
             ReplyButton("text"),
             ReplyButton("text")
         )
 
-        self.assertTrue(row.get_rows())
+        self.assertTrue(row)
 
     @staticmethod
     def _get_aiogram_reply_matrix() -> ReplyKeyboardMarkup:
@@ -130,12 +121,12 @@ class KeyboardTestCase(unittest.TestCase):
         return aiogram_builder.as_markup()
 
     def test_reply_matrix(self):
-        builder = Builder(
-            Row(
+        builder = ReplyBuilder(
+            ReplyRow(
                 ReplyButton("text1"),
                 ReplyButton("text1")
             ),
-            Row(
+            ReplyRow(
                 ReplyButton("text2")
             )
         )
@@ -148,7 +139,11 @@ class KeyboardTestCase(unittest.TestCase):
 
         aiogram_matrix = aiogram_builder.as_markup()
 
-        self.assertTrue(builder == aiogram_matrix)
+        for row_index, row in enumerate(builder.keyboard):
+            for btn_index, button in enumerate(row):
+                aiogram_button = aiogram_matrix.keyboard[row_index][btn_index]
+
+                self.assertTrue(button.__dict__ == aiogram_button.__dict__)
 
     @staticmethod
     def _get_aiogram_inline_matrix() -> InlineKeyboardMarkup:
@@ -184,19 +179,24 @@ class KeyboardTestCase(unittest.TestCase):
 
         aiogram_matrix = self._get_aiogram_inline_matrix()
 
-        self.assertTrue(builder == aiogram_matrix)
+        for row_index, row in enumerate(builder.inline_keyboard):
+            for btn_index, button in enumerate(row):
+                aiogram_button = \
+                   aiogram_matrix.inline_keyboard[row_index][btn_index]
+
+                self.assertTrue(button.__dict__ == aiogram_button.__dict__)
 
     def test_empty_inline_matrix(self):
         builder = Builder()
         aiogram_builder = InlineKeyboardBuilder().as_markup()
 
-        self.assertTrue(builder == aiogram_builder)
+        self.assertTrue(builder.inline_keyboard == aiogram_builder.inline_keyboard)
 
     def test_empty_reply_matrix(self):
-        builder = Builder(is_callback=False)
+        builder = ReplyBuilder()
         aiogram_builder = ReplyKeyboardBuilder().as_markup()
 
-        self.assertTrue(builder == aiogram_builder)
+        self.assertTrue(builder.__dict__ == aiogram_builder.__dict__)
 
 
 if __name__ == '__main__':

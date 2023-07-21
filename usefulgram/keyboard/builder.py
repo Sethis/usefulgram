@@ -1,170 +1,138 @@
 
-from typing import Optional, Any, Union
-
-from datetime import datetime, date, time
+from typing import Optional, Any, TypeVar
 
 from aiogram.types import (
-    InlineKeyboardButton, InlineKeyboardMarkup,
-    KeyboardButton, ReplyKeyboardMarkup)
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-
-from usefulgram.parsing.encode import CallbackData
-from usefulgram.exceptions import (
-    DifferentButtonsInMatrix,
-    UnknownButtonType,
-    NoOneButtonParamIsFilled)
-
-from usefulgram.utils import autorepr
+from usefulgram.keyboard.rows import Row, ReplyRow
 
 
-def check_buttons_type(button_instance: object, button_type: type):
-    if not isinstance(button_instance, button_type):
-        raise DifferentButtonsInMatrix
+T = TypeVar("T")
 
 
-class Button:
-    text: str
-    prefix: Optional[str]
-    url: Optional[str]
-    additional: tuple[Union[str, int, bool, None, datetime,
-                            date, time, object], ...]
-    other: dict[str, Any]
-    separator: str
+class BaseBuilder:
+    @staticmethod
+    def _get_adjust(rows: list[list[T]], adjust: int) -> list[list[T]]:
+        buttons: list[T] = []
 
-    def __init__(
-            self, text: Union[str, int],
-            *args: Union[str, int, bool, None, datetime, date, time, object],
-            prefix: Optional[str] = None,
-            url: Optional[str] = None, separator: str = "/",
-            **kwargs: dict[str, Any]
-            ):
+        for button_row in rows:
+            for button in button_row:
+                buttons.append(button)
 
-        prefix = self._get_prefix(prefix, args)
+        rows_len = len(rows)
 
-        if isinstance(text, int):
-            text = str(text)
+        result: list[list[T]] = []
+        row: list[T] = []
 
-        if not any((prefix, url, kwargs)):
-            raise NoOneButtonParamIsFilled
+        for index in range(rows_len - 1):
+            if index % adjust == 0 and index != 0:
+                result.append(row)
 
-        self.text = text
-        self.prefix = prefix
-        self.url = url
-        self.additional = args
-        self.other = kwargs
-        self.separator = separator
+                row.clear()
 
-    def __repr__(self):
-        return autorepr(self)
+            row.append(buttons[index])
+
+        return result
 
     @staticmethod
-    def _get_prefix(
-            prefix: Optional[str],
-            args: tuple[Union[str, int, bool, None, datetime, date, time, object], ...]
-    ) -> Optional[str]:
+    def _get_inline_keyboard(
+            rows: tuple[Row, ...],
+            adjust: Optional[int]
+    ) -> list[list[InlineKeyboardButton]]:
 
-        if prefix is not None:
-            return prefix
-
-        for obj in args:
-            result = obj.__getattribute__("prefix")
-
-            if result is not None:
-                return result
-
-        return None
-
-    def get_buttons(self) -> InlineKeyboardButton:
-        if self.prefix is not None:
-            callback_data = CallbackData(
-                self.prefix, *self.additional,
-                separator=self.separator)
-
-        else:
-            callback_data = None
-
-        return InlineKeyboardButton(text=self.text, url=self.url,
-                                    callback_data=callback_data,
-                                    **self.other)
-
-
-class ReplyButton:
-    text: str
-    other: dict[str, Any]
-
-    def __init__(self, text: str, **kwargs):
-        self.text = text
-        self.other = kwargs
-
-    def __repr__(self):
-        return autorepr(self)
-
-    def get_buttons(self) -> KeyboardButton:
-        return KeyboardButton(text=self.text, **self.other)
-
-
-class Row:
-    buttons: Union[list[InlineKeyboardButton], list[KeyboardButton]]
-    first_button_instance: Union[Button, ReplyButton]
-
-    def __init__(self, *args: Union[ReplyButton, Button]):
-        self.buttons = []
-
-        first_button = args[0]
-
-        self.first_button_instance = first_button
-
-        for button in args:
-            check_buttons_type(button, type(first_button))
-
-            self.buttons.append(button.get_buttons())
-
-    def __repr__(self):
-        return autorepr(self)
-
-    def get_rows(self) -> list[InlineKeyboardButton]:
-        return self.buttons
-
-
-class _Builder:
-    @staticmethod
-    def _get_builder(
-            first_row_button_ins: Optional[Union[Button, ReplyButton]] = None,
-            is_callback: Optional[bool] = None
-    ) -> Union[InlineKeyboardBuilder, ReplyKeyboardBuilder]:
-
-        if isinstance(first_row_button_ins, Button) or is_callback is True:
-            return InlineKeyboardBuilder()
-
-        if (isinstance(first_row_button_ins, ReplyButton)
-                or is_callback is False):
-
-            return ReplyKeyboardBuilder()
-
-        raise UnknownButtonType
-
-    def __call__(self, *rows: Row, adjust: Optional[int] = None,
-                 is_callback: bool = True,
-                 **kwargs) -> Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]:
-
-        if len(rows) == 0:
-            return self._get_builder(is_callback=is_callback).as_markup()
-
-        first_row_button_instance = rows[0].first_button_instance
-
-        builder = self._get_builder(first_row_button_instance)
+        rows_list = []
 
         for row in rows:
-            check_buttons_type(row.first_button_instance,
-                               type(first_row_button_instance))
+            rows_list.append(row.get_rows())
 
-            builder.row(*row.get_rows())
+        return BaseBuilder._get_different_keyboar(rows_list, adjust)
 
-        if adjust is not None:
-            builder.adjust(adjust)
+    @staticmethod
+    def _get_reply_keyboard(
+            rows: tuple[ReplyRow, ...],
+            adjust: Optional[int]
+    ) -> list[list[KeyboardButton]]:
 
-        return builder.as_markup(**kwargs)
+        rows_list = []
+
+        for row in rows:
+            rows_list.append(row.get_rows())
+
+        return BaseBuilder._get_different_keyboar(rows_list, adjust)
+
+    @staticmethod
+    def _get_different_keyboar(
+            rows: list[list[T]],
+            adjust: Optional[int]
+    ) -> list[list[T]]:
+        if not rows:
+            return []
+
+        if adjust is None or adjust < 0:
+            return rows
+
+        return BaseBuilder._get_adjust(rows, adjust)
+
+    @staticmethod
+    def ignore_params(*args) -> tuple[Any, ...]:
+        return args
 
 
-Builder = _Builder()
+class Builder(BaseBuilder, InlineKeyboardMarkup):
+    def __new__(
+            cls,
+            *rows: Row,
+            adjust: Optional[int] = None,
+    ):
+        keyboard = cls._get_inline_keyboard(rows, adjust)
+
+        return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+    def __init__(self, *rows: Row, adjust: Optional[int] = None):
+        # This code is never get and made for Pydantic plugin
+        super().__init__(inline_keyboard=[])
+
+        self.ignore_params(rows, adjust)
+
+
+class ReplyBuilder(BaseBuilder, ReplyKeyboardMarkup):
+    def __new__(
+            cls,
+            *rows: ReplyRow,
+            adjust: Optional[int] = None,
+            resize_keayboard: Optional[bool] = None,
+            is_persistent: Optional[bool] = None,
+            one_time_keyboard: Optional[bool] = None,
+    ):
+        keyboard = cls._get_reply_keyboard(rows, adjust)
+
+        return ReplyKeyboardMarkup(
+            keyboard=keyboard,
+            resize_keyboard=resize_keayboard,
+            is_persistent=is_persistent,
+            one_time_keyboard=one_time_keyboard
+        )
+
+    def __init__(
+            self,
+            *rows: ReplyRow,
+            adjust: Optional[int] = None,
+            resize_keayboard: Optional[bool] = None,
+            is_persistent: Optional[bool] = None,
+            one_time_keyboard: Optional[bool] = None,
+    ):
+        # This code is never get and made for Pydantic plugin
+
+        super().__init__(keyboard=[])
+
+        self.ignore_params(
+            rows,
+            adjust,
+            resize_keayboard,
+            is_persistent,
+            one_time_keyboard
+        )

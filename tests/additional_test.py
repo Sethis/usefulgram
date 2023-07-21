@@ -49,7 +49,7 @@ str_current_date = test_date.date().strftime(Const.DATETIME_FORMAT)
 str_current_time = test_date.time().strftime(Const.DATETIME_FORMAT)
 
 different_type_values_test_class_output = (
-    f"text&1000&True&None&{str_current_datetime}&"
+    f"text&1000&1&&{str_current_datetime}&"
     f"{str_current_date}&{str_current_time}"
 )
 
@@ -76,7 +76,7 @@ class AdditionalTestCase(unittest.TestCase):
     def test_none_additional(self):
         result = AdditionalInstance(None)
 
-        self.assertTrue(result == "None")
+        self.assertTrue(result == "")
 
     def test_one_text_additional(self):
         result = AdditionalInstance("text")
@@ -91,7 +91,7 @@ class AdditionalTestCase(unittest.TestCase):
     def test_different_type_additional(self):
         result = AdditionalInstance("text", 123, True, None)
 
-        self.assertTrue(result == "text&123&True&None")
+        self.assertTrue(result == "text&123&1&")
 
     def test_one_text_class_based_additional(self):
         result = AdditionalInstance(one_text_test_class)
