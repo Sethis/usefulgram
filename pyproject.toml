@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "usefulgram"
-version = "0.0.0a8"
+version = "0.0.0a9"
 description = "Like aiogram but more easy"
 license = "MIT"
 authors = ["Alexandr Bortnik <sambonsttt@gmail.com>"]
@@ -19,7 +19,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-aiogram = "^3.0.0b9"
+aiogram = "^3.0.0b8"
 cachetools ="^4.0.0"
 pydantic ="^2.0.0"
 pytz ="^2020.3"
