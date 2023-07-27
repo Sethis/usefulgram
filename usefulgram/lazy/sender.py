@@ -24,7 +24,7 @@ class MessageSender:
             photo: Optional[FSInputFile] = None,
             video: Optional[FSInputFile] = None,
             reply_markup: Optional[InlineKeyboardMarkup] = None,
-            parse_mode: Union[str, UNSET_PARSE_MODE] = UNSET_PARSE_MODE,
+            parse_mode: Union[str] = UNSET_PARSE_MODE,
             disable_web_page_preview: bool = False,
     ) -> Coroutine[Any, Any, Message]:
 

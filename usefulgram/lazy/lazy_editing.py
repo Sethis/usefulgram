@@ -163,7 +163,7 @@ class LazyEditing:
             photo: Optional[FSInputFile],
             video: Optional[FSInputFile],
             reply_markup: Optional[InlineKeyboardMarkup],
-            parse_mode: Union[str, UNSET_PARSE_MODE],
+            parse_mode: Union[str],
             disable_web_page_preview: bool,
     ) -> Union[Message, bool]:
 
@@ -237,7 +237,7 @@ class LazyEditing:
             photo: Optional[FSInputFile] = None,
             video: Optional[FSInputFile] = None,
             reply_markup: Optional[InlineKeyboardMarkup] = None,
-            parse_mode: Union[str, UNSET_PARSE_MODE] = UNSET_PARSE_MODE,
+            parse_mode: Union[str] = UNSET_PARSE_MODE,
             disable_web_page_preview: bool = False,
             answer_text: Optional[str] = None,
             answer_show_alert: bool = False,
