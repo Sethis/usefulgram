@@ -81,7 +81,18 @@ class FilterTestCase(unittest.TestCase):
 
         self.assertTrue(asyncio.run(result))
 
-    def test_different_prefix_in_pydantic_filter(self):
+    def test_different_prefixes_in_pydantic_filter(self):
+        first_btn = Button("text", SimpleData(prefix="some_prefix"))
+
+        decoder = self._get_decoder(first_btn)
+
+        filter_obj = SimpleData(prefix="another_prefix")
+
+        result = filter_obj(self._test_callback, decoder)
+
+        self.assertFalse(asyncio.run(result))
+
+    def test_correct_different_prefixes_in_pydantic_filter(self):
         first_btn = Button("text", SimpleData(prefix="some_prefix"))
 
         decoder = self._get_decoder(first_btn)

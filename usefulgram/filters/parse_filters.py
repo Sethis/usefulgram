@@ -1,7 +1,7 @@
 
 
-from typing import Optional, Union, Dict, Any, Tuple
-from abc import ABC
+from typing import Optional, Union, Dict, Any, Tuple, Iterable
+from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
@@ -57,10 +57,22 @@ class _BaseMagicFilter(ABC):
 
 
 class _BaseDataclassesFilter(_BaseMagicFilter, ABC):
-    async def __call__(
+    @abstractmethod
+    async def __call__(self, callback: CallbackQuery, decoder: DecodeCallbackData):
+        """
+        This abstract method should use the get_filter method
+        :param callback:
+        :param decoder:
+        :return:
+        """
+        pass
+
+    async def get_filter(
             self,
             callback: CallbackQuery,
-            decoder: DecodeCallbackData) -> Union[bool, Dict[str, Any]]:
+            decoder: DecodeCallbackData,
+            fields_name: Iterable[str]
+    ) -> Union[bool, Dict[str, Any]]:
 
         try:
             callback_data_model = decoder.to_format(type(self), add_prefix=True)
@@ -68,7 +80,7 @@ class _BaseDataclassesFilter(_BaseMagicFilter, ABC):
         except (AttributeError, ValueError, IndexError):
             return False
 
-        for item_name in self.__annotations__.keys():
+        for item_name in fields_name:
             if item_name == "_magic_filter":
                 continue
 
@@ -99,6 +111,20 @@ class _BaseDataclassesFilter(_BaseMagicFilter, ABC):
 
 class BasePydanticFilter(_BaseDataclassesFilter, BaseModel, BaseFilter):
     prefix: Optional[str] = None
+
+    async def __call__(
+            self,
+            callback: CallbackQuery,
+            decoder: DecodeCallbackData
+    ) -> Union[bool, Dict[str, Any]]:
+
+        fields = self.model_fields.keys()
+
+        return await self.get_filter(
+            callback=callback,
+            decoder=decoder,
+            fields_name=fields
+        )
 
 
 class CallbackPrefixFilter(BaseFilter):

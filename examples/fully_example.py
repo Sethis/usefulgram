@@ -69,7 +69,7 @@ def get_markup_by_params(value: int, datetime_value: datetime):
     )
 
 
-@dp.message(Command(commands=["start"]), flags={"start": True})
+@dp.message(Command(commands=["start"]))
 async def start_message(message: Message):
     markup = get_markup_by_params(0, datetime.now())
 
