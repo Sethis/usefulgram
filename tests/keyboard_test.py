@@ -210,9 +210,6 @@ class KeyboardTestCase(unittest.TestCase):
             ReplyRow(ReplyButton("text"), ReplyButton("text")),
         )
 
-        print(builder1.keyboard)
-        print(builder2.keyboard)
-
         return self.assertTrue(builder1 == builder2)
 
     def test_adjust_in_one_row(self):
@@ -226,9 +223,6 @@ class KeyboardTestCase(unittest.TestCase):
             ReplyRow(ReplyButton("text"), ReplyButton("text")),
             ReplyRow(ReplyButton("text"), ReplyButton("text")),
         )
-
-        print(builder1.keyboard)
-        print(builder2.keyboard)
 
         return self.assertTrue(builder1 == builder2)
 

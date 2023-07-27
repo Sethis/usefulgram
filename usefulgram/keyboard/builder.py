@@ -24,7 +24,6 @@ class BaseBuilder:
                 buttons.append(button)
 
         rows_len = len(buttons)
-        print(rows_len)
 
         result: list[list[T]] = []
         row: list[T] = []
