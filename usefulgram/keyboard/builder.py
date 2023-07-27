@@ -23,18 +23,22 @@ class BaseBuilder:
             for button in button_row:
                 buttons.append(button)
 
-        rows_len = len(rows)
+        rows_len = len(buttons)
+        print(rows_len)
 
         result: list[list[T]] = []
         row: list[T] = []
 
-        for index in range(rows_len - 1):
-            if index % adjust == 0 and index != 0:
-                result.append(row)
+        for index in range(0, rows_len):
+            row.append(buttons[index])
+
+            if (index + 1) % adjust == 0:
+                result.append(row.copy())
 
                 row.clear()
 
-            row.append(buttons[index])
+        if row:
+            result.append(row.copy())
 
         return result
 

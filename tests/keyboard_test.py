@@ -198,6 +198,42 @@ class KeyboardTestCase(unittest.TestCase):
 
         self.assertTrue(builder.__dict__ == aiogram_builder.__dict__)
 
+    def test_adjust(self):
+        builder1 = ReplyBuilder(
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+            adjust=2
+        )
+
+        builder2 = ReplyBuilder(
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+        )
+
+        print(builder1.keyboard)
+        print(builder2.keyboard)
+
+        return self.assertTrue(builder1 == builder2)
+
+    def test_adjust_in_one_row(self):
+        builder1 = ReplyBuilder(
+            ReplyRow(ReplyButton("text"), ReplyButton("text"),
+                     ReplyButton("text"), ReplyButton("text")),
+            adjust=2
+        )
+
+        builder2 = ReplyBuilder(
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+            ReplyRow(ReplyButton("text"), ReplyButton("text")),
+        )
+
+        print(builder1.keyboard)
+        print(builder2.keyboard)
+
+        return self.assertTrue(builder1 == builder2)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
