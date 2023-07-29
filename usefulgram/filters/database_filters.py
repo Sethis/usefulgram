@@ -17,7 +17,7 @@ class BaseDatabasePrefixFilter(BaseFilter, ABC):
         self._data = kwargs
 
     async def __call__(self, _event: TelegramObject):
-        prefix = self.get_prefix(self._data)
+        prefix = await self.get_prefix(self._data)
 
         return prefix == self._prefix
 

@@ -11,4 +11,4 @@ class Const:
 
     TROTTLING_ANSWER: Final = "You've hit a limit. Please click less often"
 
-    STABLE_WAIT_TIME_SECONDS = 1.2
+    STABLE_WAIT_TIME_SECONDS: Final = 0.7
