@@ -227,7 +227,5 @@ class KeyboardTestCase(unittest.TestCase):
         return self.assertTrue(builder1 == builder2)
 
 
-
-
 if __name__ == '__main__':
     unittest.main()

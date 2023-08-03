@@ -11,7 +11,7 @@ from usefulgram.lazy import LazyEditing
 
 
 class StackerMiddleware(BaseMiddleware):
-    def __init__(self, stable: bool = True, separator: str = "/"):
+    def __init__(self, stable: bool = False, separator: str = "/"):
         self.separator = separator
         self.stable = stable
 
