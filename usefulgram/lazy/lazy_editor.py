@@ -21,17 +21,19 @@ from usefulgram.enums import Const
 from usefulgram.exceptions import MessageTooOld
 from usefulgram.lazy.editor import MessageEditor
 from usefulgram.lazy.sender import MessageSender
+from usefulgram.lazy.stable_wait import StableWaiter
+from usefulgram.lazy.callback_responder import CallbackAnswer
 
 
-class LazyEditing:
-    callback: CallbackQuery
-    bot: Bot
-    stable: bool
+class LazyEditor:
+    _callback: CallbackQuery
+    _bot: Bot
+    _stable: bool
 
     def __init__(self, callback: CallbackQuery, bot: Bot, stable: bool = False):
-        self.callback = callback
-        self.bot = bot
-        self.stable = stable
+        self._callback = callback
+        self._bot = bot
+        self._stable = stable
 
     @staticmethod
     def _get_text_by_caption(
@@ -74,7 +76,7 @@ class LazyEditing:
         return False
 
     @staticmethod
-    def _get_time_between_current_and_message(
+    def _get_delta_between_current_and_message(
             message_date: datetime
     ) -> timedelta:
 
@@ -86,7 +88,7 @@ class LazyEditing:
     def _get_time_allowed_edit_status(message: Message) -> bool:
         const_delta = timedelta(hours=Const.ALLOW_EDITING_DELTA)
 
-        delta = LazyEditing._get_time_between_current_and_message(
+        delta = LazyEditor._get_delta_between_current_and_message(
             message.date
         )
 
@@ -114,6 +116,9 @@ class LazyEditing:
         elif video and not message_has_photo_or_video:
             return False
 
+        elif (not video or not photo) and message_has_photo_or_video:
+            return False
+
         return True
 
     def _get_bot_allow_edit_status(
@@ -137,24 +142,6 @@ class LazyEditing:
         return True
 
     @staticmethod
-    async def _auto_callback_answer(
-            bot: Bot,
-            callback_id: str,
-            autoanswer: bool = True,
-            answer_text: Optional[str] = None,
-            answer_show_alert: bool = False
-    ) -> Optional[bool]:
-
-        if not autoanswer:
-            return None
-
-        return await bot.answer_callback_query(
-            callback_query_id=callback_id,
-            text=answer_text,
-            show_alert=answer_show_alert
-        )
-
-    @staticmethod
     async def _send_or_edit(
             bot: Bot,
             can_edit: bool,
@@ -168,7 +155,7 @@ class LazyEditing:
     ) -> Union[Message, bool]:
 
         if not can_edit:
-            text = LazyEditing._get_message_text(text, message=message)
+            text = LazyEditor._get_message_text(text, message=message)
 
             return await MessageSender.send(
                 bot=bot,
@@ -218,18 +205,10 @@ class LazyEditing:
         if message.edit_date:
             dt = datetime.fromtimestamp(message.edit_date, tz=pytz.UTC)
 
-            delta = LazyEditing._get_time_between_current_and_message(
-                message_date=dt
-            )
         else:
-            delta = LazyEditing._get_time_between_current_and_message(
-                message_date=message.date
-            )
+            dt = message.date
 
-        total_seconds = delta.total_seconds()
-
-        wait_time = Const.STABLE_WAIT_TIME_SECONDS - total_seconds
-        return round(wait_time, 3)
+        return StableWaiter.get_stable_wait_time(dt)
 
     async def edit(
             self,
@@ -243,8 +222,21 @@ class LazyEditing:
             answer_show_alert: bool = False,
             autoanswer: bool = True
     ) -> Union[Message, bool]:
+        """
+        Smart edit menager
+        :param text:
+        :param photo:
+        :param video:
+        :param reply_markup:
+        :param parse_mode:
+        :param disable_web_page_preview:
+        :param answer_text:
+        :param answer_show_alert:
+        :param autoanswer:
+        :return:
+        """
 
-        callback = self.callback
+        callback = self._callback
         message = callback.message
 
         if message is None:
@@ -252,7 +244,7 @@ class LazyEditing:
 
             raise MessageTooOld
 
-        if self.stable:
+        if self._stable:
             await asyncio.sleep(self._get_stable_wait_time(message))
 
         if not self._get_data_changes_status(
@@ -271,7 +263,7 @@ class LazyEditing:
         )
 
         result = await self._send_or_edit(
-            bot=self.bot,
+            bot=self._bot,
             can_edit=can_edit,
             message=message,
             text=text,
@@ -282,10 +274,8 @@ class LazyEditing:
             disable_web_page_preview=disable_web_page_preview,
         )
 
-        await asyncio.sleep(Const.SECONDS_BETWEEN_OPERATION)
-
-        await self._auto_callback_answer(
-            bot=self.bot,
+        await CallbackAnswer.auto_callback_answer(
+            bot=self._bot,
             callback_id=callback.id,
             autoanswer=autoanswer,
             answer_text=answer_text,

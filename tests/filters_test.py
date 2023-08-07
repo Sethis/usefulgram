@@ -36,6 +36,15 @@ class ClickerData(BasePydanticFilter):
     value: Optional[int] = None
 
 
+class InvestedData(BasePydanticFilter):
+    value: int
+
+
+class NestedData(BasePydanticFilter):
+    value: str = "test"
+    class_: Optional[InvestedData] = None
+
+
 class FilterTestCase(unittest.TestCase):
     _test_callback: Optional[CallbackQuery] = None
 
@@ -178,11 +187,29 @@ class FilterTestCase(unittest.TestCase):
     def test_false_pydantic_filter(self):
         decoder = self._get_simple_test_decoder()
 
-        filter_obj = SimpleData(prefix="some_prefix", value="some_value", number=2)
+        filter_obj = SimpleData(
+            prefix="some_prefix",
+            value="some_value",
+            number=2
+        )
 
         result = filter_obj(self._test_callback, decoder)
 
         self.assertFalse(asyncio.run(result))
+
+    def test_nested_pydantic_filter(self):
+        inv_class = InvestedData(value=123)
+        first_btn = Button("text", NestedData(
+            prefix="prefix", class_=inv_class
+        ))
+
+        decoder = self._get_decoder(first_btn)
+
+        filter_obj = NestedData(prefix="prefix")
+
+        result = filter_obj(self._test_callback, decoder)
+
+        self.assertTrue(asyncio.run(result))
 
     def test_pydantic_filter_returning_value(self):
         decoder = self._get_simple_test_decoder()

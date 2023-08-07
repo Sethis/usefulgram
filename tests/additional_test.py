@@ -9,16 +9,14 @@ import unittest
 from usefulgram.parsing.encode import AdditionalInstance
 from usefulgram.enums import Const
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass()
-class OneTextTestClass:
+class OneTextTestClass(BaseModel):
     text: str
 
 
-@dataclass()
-class DifferentTypeValuesTestClass:
+class DifferentTypeValuesTestClass(BaseModel):
     text: str
     number: int
     bool_value: bool
@@ -28,9 +26,15 @@ class DifferentTypeValuesTestClass:
     time_value: time
 
 
-@dataclass()
-class RecursionTestClass:
-    reqursion_class: OneTextTestClass
+class NestedClass(BaseModel):
+    value1: int = 123
+    value2: str = "some_text"
+
+
+class RecursionTestClass(BaseModel):
+    value1: str = "text"
+    reqursion_class: NestedClass = NestedClass()
+    value2: int = 100
 
 
 test_date = datetime(year=1999, month=1, day=10, hour=3,
@@ -104,20 +108,27 @@ class AdditionalTestCase(unittest.TestCase):
         self.assertTrue(result == different_type_values_test_class_output)
 
     def test_some_different_type_class_based_additional(self):
-        result = AdditionalInstance(different_type_values_test_class, different_type_values_test_class,
-                                    different_type_values_test_class, different_type_values_test_class)
+        result = AdditionalInstance(
+            different_type_values_test_class,
+            different_type_values_test_class,
+            different_type_values_test_class,
+            different_type_values_test_class
+        )
 
-        output = [f"{different_type_values_test_class_output}&" for _ in range(4)]
+        output = [
+            f"{different_type_values_test_class_output}&" for _ in range(4)
+        ]
+
         str_output = "".join(output)[:-1]
 
         self.assertTrue(result == str_output)
 
     def test_recursion_class_error(self):
-        example_class = RecursionTestClass(reqursion_class=one_text_test_class)
+        example_class = AdditionalInstance(
+            RecursionTestClass()
+        )
 
-        result = self.is_raise_value_exception(AdditionalInstance, example_class)
-
-        self.assertTrue(result)
+        self.assertTrue(example_class == "text&123&some_text&100")
 
 
 if __name__ == '__main__':

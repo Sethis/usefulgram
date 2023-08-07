@@ -9,7 +9,9 @@ from decimal import Decimal
 
 from datetime import date, time, datetime
 
-from usefulgram.exceptions import TooMoreCharacters, RecursionObjectParse
+from pydantic import BaseModel
+
+from usefulgram.exceptions import TooMoreCharacters
 from usefulgram.enums import Const
 
 
@@ -19,7 +21,13 @@ class _Additional:
         return f"{item}{separator}"
 
     def _object_to_str(self, item: object) -> str:
-        annotations_keys = list(item.__annotations__.keys())
+        if isinstance(item, BaseModel):
+            fields = item.model_fields
+
+        else:
+            fields = item.__annotations__
+
+        annotations_keys = list(fields.keys())
 
         result = ""
 
@@ -55,7 +63,7 @@ class _Additional:
             return item.name
 
         if is_recursion:
-            raise RecursionObjectParse
+            return self._object_to_str(item)
 
         try:
             return self._object_to_str(item)

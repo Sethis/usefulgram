@@ -11,5 +11,6 @@ from .exceptions import (
     BotIsUndefined,
     MessageTooOld,
     MessageTextIsNone,
-    UndefinedMagicFilterModel
+    UndefinedMagicFilterModel,
+    UndefinedType
 )

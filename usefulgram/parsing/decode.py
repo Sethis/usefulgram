@@ -1,6 +1,6 @@
 
 
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, Type
 from datetime import datetime, date, time
 
 from usefulgram.enums import Const
@@ -65,10 +65,13 @@ class DecodeCallbackData:
         if obj_value == "":
             return None
 
-        if not isinstance(obj_type, type):  # Optional[smt] checker
-            optional_types = obj_type.__getattribute__("__args__")
+        # Optional[...] or Union[...] checker
+        if not isinstance(obj_type, type):
+            irregular_types = obj_type.__getattribute__("__args__")
 
-            return self._convert_typing_object_to_type(obj_value, *optional_types)
+            return self._convert_typing_object_to_type(
+                obj_value, *irregular_types
+            )
 
         if issubclass(obj_type, bool):
             return bool(int(obj_value))
@@ -91,21 +94,75 @@ class DecodeCallbackData:
         except (ValueError, AttributeError):
             raise WrongObjectType
 
+    @staticmethod
+    def _is_dataclass(obj_type: Any) -> bool:
+        if isinstance(obj_type, type):
+            return issubclass(obj_type, BaseModel)
+
+        try:
+            irregular_types = obj_type.__getattribute__("__args__")
+
+        except (ValueError, AttributeError):
+            return False
+
+        for irregular_type in irregular_types:
+            if issubclass(irregular_type, BaseModel):
+                return True
+
+        return False
+
+    @staticmethod
+    def _get_dataclass_obj(obj_type: Any) -> Type[BaseModel]:
+        if isinstance(obj_type, type):
+            if issubclass(obj_type, BaseModel):
+                return obj_type
+
+        irregular_types = obj_type.__getattribute__("__args__")
+
+        for irregular_type in irregular_types:
+            if issubclass(irregular_type, BaseModel):
+                return irregular_type
+
+        raise WrongObjectType
+
     def _iter_key_and_type(
-            self, keys: list[str], objects_type: list[type],
-            add_prefix: bool
+            self, keys: list[str], objects_types: list[type],
+            add_prefix: bool, start_additional_value: int = 0
     ) -> dict[str, Any]:
 
-        return_param = {}
+        return_param: dict[str, Any] = {}
 
         if add_prefix:
             return_param["prefix"] = self.prefix
 
-        additional_value = 0
+        additional_value = start_additional_value
 
-        for key, obj_type in zip(keys, objects_type):
+        for key, obj_type in zip(keys, objects_types):
+
             if key == "prefix":
-                return_param[key] = self._convert_str_to_type(self.prefix, obj_type)
+                return_param[key] = self._convert_str_to_type(
+                    self.prefix, obj_type
+                )
+
+                continue
+
+            if self._is_dataclass(obj_type):
+                dataclass_obj = self._get_dataclass_obj(obj_type)
+
+                keys, values = self._get_key_and_values_by_obj(
+                    format_object=dataclass_obj
+                )
+
+                params = self._iter_key_and_type(
+                    keys=keys,
+                    objects_types=values,
+                    add_prefix=False,
+                    start_additional_value=additional_value
+                )
+
+                additional_value += len(keys)
+
+                return_param[key] = self._get_convert_obj(dataclass_obj, params)
 
                 continue
 
@@ -117,21 +174,50 @@ class DecodeCallbackData:
 
         return return_param
 
-    def to_format(self, format_objects: type, add_prefix: bool = False) -> Union[BaseModel, object]:
-        annotations = format_objects.__annotations__
+    @staticmethod
+    def _get_convert_obj(
+            format_obj: type, params: dict[str, Any]
+    ) -> Union[BaseModel, object]:
+        return format_obj(**params)
 
-        keys = list(annotations.keys())
-        values = list(annotations.values())
+    @staticmethod
+    def _get_key_and_values_by_obj(
+            format_object: type
+    ) -> tuple[list[str], list[Any]]:
+
+        if issubclass(format_object, BaseModel):
+            fields = format_object.model_fields
+            values = [i.annotation for i in fields.values()]
+
+            return list(fields.keys()), values
+
+        fields = format_object.__annotations__
+
+        another_values = list(fields.values())
+
+        return list(fields.keys()), another_values
+
+    def to_format(
+            self, format_object: type, add_prefix: bool = False
+    ) -> Union[BaseModel, object]:
+
+        keys, values = self._get_key_and_values_by_obj(format_object=format_object)
 
         obj_params = self._iter_key_and_type(keys, values, add_prefix)
 
-        return format_objects(**obj_params)
+        return self._get_convert_obj(format_object, obj_params)
 
     @staticmethod
     def class_to_dict(class_: Union[BaseModel, object]) -> dict[str, Any]:
         result_dict = {"prefix": class_.__getattribute__("prefix")}
 
-        for key in class_.__annotations__.keys():
+        if isinstance(class_, BaseModel):
+            fields = class_.model_fields
+
+        else:
+            fields = class_.__annotations__
+
+        for key in fields.keys():
             result_dict[key] = class_.__getattribute__(key)
 
         return result_dict

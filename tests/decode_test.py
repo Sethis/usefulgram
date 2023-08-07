@@ -42,6 +42,17 @@ class DifferentTypeValuesWithPrefixTestClass(BaseModel):
     time_value: time
 
 
+class InvestedClass(BaseModel):
+    value1: int = 123
+    value2: str = "another_text"
+
+
+class NestedPadanticClass(BaseModel):
+    value1: str = "some_text"
+    class_: InvestedClass = InvestedClass()
+    value2: int = 100
+
+
 class EnumValueClass(Enum):
     FIRST: int = 1
     SECOND: int = 2
@@ -180,6 +191,13 @@ class DecodeTestCase(unittest.TestCase):
         decode = DecodeCallbackData(callback).to_format(DifferentTypeValuesTestClass)
 
         self.assertTrue(decode == different_type_values_test_class)
+
+    def test_nested_decode(self):
+        callback = CallbackData("prefix", NestedPadanticClass())
+
+        decode = DecodeCallbackData(callback).to_format(NestedPadanticClass)
+
+        self.assertTrue(decode == NestedPadanticClass())
 
     def test_different_type_with_prefix_decode(self):
         callback = CallbackData(

@@ -6,8 +6,10 @@ DifferentButtonsInMatrix = ValueError("Only one type of button is allowed in the
 
 UnknownButtonType = ValueError("UnknownButtonType")
 
-TooMoreCharacters = ValueError("The callback data can be only 64 bytes"
-                               "(~62 or less characters because separator)")
+TooMoreCharacters = ValueError(
+    "The callback data can be only 64 bytes"
+    "(~62 or less characters because separator)"
+)
 
 RecursionObjectParse = ValueError("Now objects cannot contain objects")
 
@@ -22,3 +24,5 @@ MessageTooOld = ValueError("Message too old and has not message param")
 MessageTextIsNone = ValueError("Message text is None")
 
 UndefinedMagicFilterModel = ValueError("Magic filter model is undefined")
+
+UndefinedType = ValueError("Error event type in a middleware")

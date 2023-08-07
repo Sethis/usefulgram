@@ -77,7 +77,7 @@ class _BaseDataclassesFilter(_BaseMagicFilter, ABC):
         try:
             callback_data_model = decoder.to_format(type(self), add_prefix=True)
 
-        except (AttributeError, ValueError, IndexError):
+        except (AttributeError, ValueError, IndexError, KeyError):
             return False
 
         for item_name in fields_name:
