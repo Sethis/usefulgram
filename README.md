@@ -1,9 +1,9 @@
 # Usefulgram
 
-### Installation
+### Installation:
 `pip install usefulgram`
 
-### Немного истории 
+### A little history:
 angiogram is a wonderful framework. However, when working with it, 
 I came across the fact that I transfer many functions and 
 classes from project to project. First, common classes were created 
@@ -39,7 +39,7 @@ of using the library. Over time, they will get bigger
 #### Documentation: 
 _In development and will be available soon_
 
-### Roadmap
+### Roadmap:
 - Improve the code ✔️
 - Add more usage examples ✔️(~75% done)
 - Translate all texts in the library into English ✔️(it can be painful in some places)
