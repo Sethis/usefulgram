@@ -33,9 +33,6 @@ dp.update.outer_middleware(StackerMiddleware())
 dp.callback_query.outer_middleware(ThrottlingMiddleware())
 
 
-# Еhis is optional, you can not inherit and use default CalendarDateFilter
-
-
 @dp.message(Command(commands=["start"]))
 async def start_calendar(_message: Message, sender: LazySender):
     current_datetime = datetime.now()
