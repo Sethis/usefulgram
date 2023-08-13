@@ -108,15 +108,13 @@ class LazyEditor:
             video: Optional[FSInputFile]
     ) -> bool:
 
-        message_has_photo_or_video = message.photo or message.video
+        message_has_media = message.photo or message.video
+        media = photo or video
 
-        if photo and not message_has_photo_or_video:
+        if media and not message_has_media:
             return False
 
-        elif video and not message_has_photo_or_video:
-            return False
-
-        elif (not video or not photo) and message_has_photo_or_video:
+        if not media and message_has_media:
             return False
 
         return True
