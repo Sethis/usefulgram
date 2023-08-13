@@ -60,18 +60,9 @@ class LazyEditor:
             reply_markup: Optional[InlineKeyboardMarkup],
             video: Optional[FSInputFile],
             photo: Optional[FSInputFile],
-            check_media_name: bool
     ) -> bool:
 
         media = photo or video
-        message_media = message.photo or message.video
-
-        try:
-            name = media.path.split("/")[-1]
-            name = name.split(".")[0]
-
-        except (ValueError, IndexError):
-            name = None
 
         if message.text != text:
             return True
@@ -79,14 +70,7 @@ class LazyEditor:
         if message.reply_markup != reply_markup:
             return True
 
-        if message_media and check_media_name:
-            if isinstance(message_media, list):
-                return True
-
-            if name == message_media.file_unique_id:
-                return True
-
-        if media and not check_media_name:
+        if media:
             return True
 
         return False
@@ -231,7 +215,6 @@ class LazyEditor:
             video: Optional[FSInputFile] = None,
             reply_markup: Optional[InlineKeyboardMarkup] = None,
             parse_mode: Union[str] = UNSET_PARSE_MODE,
-            check_media_name: bool = False,
             disable_web_page_preview: bool = False,
             answer_text: Optional[str] = None,
             answer_show_alert: bool = False,
@@ -244,7 +227,6 @@ class LazyEditor:
         :param video:
         :param reply_markup:
         :param parse_mode:
-        :param check_media_name:
         :param disable_web_page_preview:
         :param answer_text:
         :param answer_show_alert:
@@ -269,7 +251,6 @@ class LazyEditor:
                 reply_markup=reply_markup,
                 video=video,
                 photo=photo,
-                check_media_name=check_media_name
         ):
             return message
 
