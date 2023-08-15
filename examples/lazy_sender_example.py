@@ -19,11 +19,13 @@ TOKEN = "TOKEN"
 dp = Dispatcher()
 
 
+# The awesome trottling middleware
+# It always should be highest uter middleware
+dp.callback_query.outer_middleware(ThrottlingMiddleware())
+
+
 # StackerMiddleware add the lazy and other usefulgram things in handlers
 dp.update.outer_middleware(StackerMiddleware())
-
-# The awesome trottling middleware
-dp.callback_query.outer_middleware(ThrottlingMiddleware())
 
 
 # Create the filter and the dataclass in one class

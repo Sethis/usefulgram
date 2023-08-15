@@ -4,7 +4,7 @@
 `pip install usefulgram`
 
 ### A little history:
-aiogram is a wonderful framework. However, when working with it, 
+angiogram is a wonderful framework. However, when working with it, 
 I came across the fact that I transfer many functions and 
 classes from project to project. First, common classes were created 
 for convenient transportation, then it grew

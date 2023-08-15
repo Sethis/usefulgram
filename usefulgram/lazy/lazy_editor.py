@@ -150,9 +150,13 @@ class LazyEditor:
             reply_markup: Optional[InlineKeyboardMarkup],
             parse_mode: Union[str],
             disable_web_page_preview: bool,
+            on_onflict_do_nothing: bool
     ) -> Union[Message, bool]:
 
         if not can_edit:
+            if on_onflict_do_nothing:
+                return False
+
             text = LazyEditor._get_message_text(text, message=message)
 
             return await MessageSender.send(
@@ -214,23 +218,26 @@ class LazyEditor:
             photo: Optional[FSInputFile] = None,
             video: Optional[FSInputFile] = None,
             reply_markup: Optional[InlineKeyboardMarkup] = None,
-            parse_mode: Union[str] = UNSET_PARSE_MODE,
+            parse_mode: Union[str, UNSET_PARSE_MODE] = UNSET_PARSE_MODE,
             disable_web_page_preview: bool = False,
+            on_onflict_do_nothing: bool = False,
             answer_text: Optional[str] = None,
             answer_show_alert: bool = False,
             autoanswer: bool = True
     ) -> Union[Message, bool]:
         """
         Smart edit menager
-        :param text:
-        :param photo:
-        :param video:
-        :param reply_markup:
-        :param parse_mode:
+        :param text: edit message text
+        :param photo: edit message media
+        :param video: edit message media
+        :param reply_markup: edit message inline keyboard object
+        :param parse_mode: Mode for parsing entities in the message text.
+        See formatting options for more details.
         :param disable_web_page_preview:
-        :param answer_text:
-        :param answer_show_alert:
-        :param autoanswer:
+        :param on_onflict_do_nothing:
+        :param answer_text: if autoanser, it got callback.answer()
+        :param answer_show_alert: if autoanser, it got callback.answer()
+        :param autoanswer: should menager calls callback.answer()
         :return:
         """
 
@@ -270,6 +277,7 @@ class LazyEditor:
             reply_markup=reply_markup,
             parse_mode=parse_mode,
             disable_web_page_preview=disable_web_page_preview,
+            on_onflict_do_nothing=on_onflict_do_nothing
         )
 
         await CallbackAnswer.auto_callback_answer(

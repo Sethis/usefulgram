@@ -26,11 +26,14 @@ TOKEN = "TOKEN"
 dp = Dispatcher()
 
 
+# The awesome trottling middleware
+dp.callback_query.outer_middleware(ThrottlingMiddleware())
+
 # StackerMiddleware add the lazy and other usefulgram things in handlers
 dp.update.outer_middleware(StackerMiddleware())
 
-# The awesome trottling middleware
-dp.callback_query.outer_middleware(ThrottlingMiddleware())
+
+# Еhis is optional, you can not inherit and use default CalendarDateFilter
 
 
 @dp.message(Command(commands=["start"]))

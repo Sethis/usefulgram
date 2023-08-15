@@ -8,20 +8,26 @@ https://github.com/wakaree/simple_echo_bot/blob/main/middlewares/throttling.py
 from typing import Callable, Dict, Any, Awaitable, MutableMapping, Optional
 
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, CallbackQuery, User
+from aiogram.types import TelegramObject, User
 
 from cachetools import TTLCache
 
-from usefulgram.enums import Const
+from usefulgram.exceptions import Throttling
 
 
 class ThrottlingMiddleware(BaseMiddleware):
     RATE_LIMIT = 0.7
-    ANSWER_TEXT = Const.TROTTLING_ANSWER
+    SIMPLE = True
 
-    def __init__(self, rate_limit: float = RATE_LIMIT, answer_text: str = ANSWER_TEXT) -> None:
-        self._cache: MutableMapping[int, None] = TTLCache(maxsize=10_000, ttl=rate_limit)
-        self._answer_text = answer_text
+    def __init__(
+            self, rate_limit: float = RATE_LIMIT, simple: bool = SIMPLE
+    ) -> None:
+
+        self._cache: MutableMapping[int, None] = TTLCache(
+            maxsize=10_000, ttl=rate_limit
+        )
+
+        self.SIMPLE = simple
 
     async def __call__(
         self,
@@ -35,15 +41,11 @@ class ThrottlingMiddleware(BaseMiddleware):
             if user.id in self._cache:
                 self._cache[user.id] = None
 
-                if isinstance(event, CallbackQuery):
-                    return await self.trottling_answer(self._answer_text, event)
+                if self.SIMPLE:
+                    return None
 
-                return None
+                raise Throttling()
 
             self._cache[user.id] = None
 
         return await handler(event, data)
-
-    @staticmethod
-    async def trottling_answer(text: str, callback: CallbackQuery):
-        return await callback.answer(text, show_alert=True)

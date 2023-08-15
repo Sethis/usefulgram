@@ -4,11 +4,9 @@ from typing import Final
 
 
 class Const:
-    DATETIME_FORMAT: Final = "%Y%m%d%H%M%S"
+    DATETIME_FORMAT: Final[str] = "%Y%m%d%H%M%S"
 
-    ALLOW_EDITING_DELTA: Final = 47
-    SECONDS_BETWEEN_OPERATION: Final = 1
+    ALLOW_EDITING_DELTA: Final[int] = 47
+    SECONDS_BETWEEN_OPERATION: Final[int] = 1
 
-    TROTTLING_ANSWER: Final = "You've hit a limit. Please click less often"
-
-    STABLE_WAIT_TIME_SECONDS: Final = 0.7
+    STABLE_WAIT_TIME_SECONDS: Final[float] = 0.7

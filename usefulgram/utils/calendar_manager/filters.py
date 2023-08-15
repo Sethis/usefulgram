@@ -4,7 +4,7 @@ from typing import Optional, Union
 from datetime import date
 
 from usefulgram.enums.calendar import CalendarEnum
-from usefulgram.filters import BasePydanticFilter
+from usefulgram.filters.parse_filters import BasePydanticFilter
 
 
 class CalendarChangeButton(BasePydanticFilter):

@@ -10,13 +10,14 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup
 from aiogram.filters import Command
 
 from usefulgram.middlewares import StackerMiddleware, ThrottlingMiddleware
+
 from usefulgram.keyboard import Builder, Row, Button
 from usefulgram.filters import BasePydanticFilter
 from usefulgram.lazy import LazyEditor, LazySender
 
 
 # Place for your perfect token
-TOKEN = "TOKEN"
+TOKEN = ""
 
 
 dp = Dispatcher()
@@ -26,7 +27,8 @@ dp = Dispatcher()
 dp.update.outer_middleware(StackerMiddleware())
 
 # The awesome trottling middleware
-dp.callback_query.outer_middleware(ThrottlingMiddleware())
+# More examples of throttling see in throttling_examples
+dp.update.outer_middleware(ThrottlingMiddleware())
 
 
 # Create the filter and the dataclass in one class

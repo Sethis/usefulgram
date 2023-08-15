@@ -22,20 +22,20 @@ from usefulgram.lazy import LazyEditor, LazySender
 from usefulgram.enums import CalendarEnum
 
 # Place for your perfect token
-TOKEN = "TOKEN"
+TOKEN = ""
 
 
 dp = Dispatcher()
 
 
-# StackerMiddleware add the lazy and other usefulgram things in handlers
-dp.update.outer_middleware(StackerMiddleware())
-
 # The awesome trottling middleware
 dp.callback_query.outer_middleware(ThrottlingMiddleware())
 
+# StackerMiddleware add the lazy and other usefulgram things in handlers
+dp.update.outer_middleware(StackerMiddleware())
 
-# Еhis is optional, you can not inherit and use default CalendarDateFilter
+
+# This is optional, you can not inherit and use default CalendarDateFilter
 class CalendarResult(CalendarDateFilter):
     location: Optional[str] = None
 

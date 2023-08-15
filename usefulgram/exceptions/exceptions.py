@@ -26,3 +26,13 @@ MessageTextIsNone = ValueError("Message text is None")
 UndefinedMagicFilterModel = ValueError("Magic filter model is undefined")
 
 UndefinedType = ValueError("Error event type in a middleware")
+
+CallbackEventWasNotGiven = ValueError("Callback event was not given to decoder")
+
+
+class Throttling(Exception):
+    def __init__(self):
+        self.message = "User got trottling exception"
+
+        super().__init__(self.message)
+

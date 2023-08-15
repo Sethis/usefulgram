@@ -1,4 +1,4 @@
 
 
 from .stacker import StackerMiddleware
-from .trottling import ThrottlingMiddleware
+from .throttling import ThrottlingMiddleware

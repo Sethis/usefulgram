@@ -12,5 +12,7 @@ from .exceptions import (
     MessageTooOld,
     MessageTextIsNone,
     UndefinedMagicFilterModel,
-    UndefinedType
+    UndefinedType,
+    CallbackEventWasNotGiven,
+    Throttling
 )
