@@ -2,9 +2,9 @@
 
 import asyncio
 
-from typing import Optional, Union
+from typing import Optional, Union, Any
 from datetime import datetime, timedelta
-import pytz
+from datetime import timezone
 
 from aiogram.types import (
     CallbackQuery,
@@ -80,7 +80,7 @@ class LazyEditor:
             message_date: datetime
     ) -> timedelta:
 
-        current = datetime.now(tz=pytz.UTC)
+        current = datetime.now(tz=timezone.utc)
 
         return current - message_date
 
@@ -205,7 +205,7 @@ class LazyEditor:
     @staticmethod
     def _get_stable_wait_time(message: Message) -> float:
         if message.edit_date:
-            dt = datetime.fromtimestamp(message.edit_date, tz=pytz.UTC)
+            dt = datetime.fromtimestamp(message.edit_date, tz=timezone.utc)
 
         else:
             dt = message.date
@@ -218,7 +218,7 @@ class LazyEditor:
             photo: Optional[FSInputFile] = None,
             video: Optional[FSInputFile] = None,
             reply_markup: Optional[InlineKeyboardMarkup] = None,
-            parse_mode: Union[str, UNSET_PARSE_MODE] = UNSET_PARSE_MODE,
+            parse_mode: Union[str, Any] = UNSET_PARSE_MODE,
             disable_web_page_preview: bool = False,
             on_onflict_do_nothing: bool = False,
             answer_text: Optional[str] = None,
